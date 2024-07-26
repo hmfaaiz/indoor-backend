@@ -1,0 +1,188 @@
+const { PrismaClient } = require("@prisma/client");
+const client = new PrismaClient();
+
+
+const dotenv = require("dotenv");
+dotenv.config();
+
+
+const AllocateRoom = async (req, res) => {
+    try {
+    
+      if (!req.body.room_id || !req.body.start_time || !req.body.end_time || !req.body.contact_number || !req.body.contact_name) {
+        return res.status(400).json({ status: 400, message: "Incomplete or malformed request data" });
+      }
+  
+
+      const startTime = new Date(req.body.start_time);
+      const endTime = new Date(req.body.end_time);
+  
+      const now = new Date();
+  
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        return res.status(400).json({ status: 400, message: "Invalid date format" });
+      }
+ 
+      if (startTime < now) {
+        return res.status(400).json({ status: 400, message: "Start time cannot be in the past" });
+      }
+  
+      if (endTime < now) {
+        return res.status(400).json({ status: 400, message: "End time cannot be in the past" });
+      }
+  
+      if (startTime >= endTime) {
+        return res.status(400).json({ status: 400, message: "End time must be after start time" });
+      }
+  
+ 
+      const room = await client.room.findFirst({
+        where: {
+          id: req.body.room_id,
+          is_active: true
+        }
+      });
+  
+      if (!room) {
+        return res.status(404).json({ status: 404, message: "Room not found or inactive" });
+      }
+  
+ 
+      const existingBooking = await client.booking.findMany({
+        where: {
+          room_id: req.body.room_id,
+          is_active: true,
+          OR: [
+            {
+              AND: [
+                { start_time: { lte: endTime } },
+                { end_time: { gte: startTime } }
+              ]
+            }
+          ]
+        },
+      });
+  
+      if (existingBooking.length > 0) {
+        return res.status(409).json({ status: 409, message: "Room is already booked for the requested time" ,data:existingBooking});
+      }
+  
+
+      await client.booking.create({
+        data: {
+          room_id: req.body.room_id,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          contact_number: req.body.contact_number,
+          contact_name: req.body.contact_name,
+          contact_email: req.body.contact_email || null,
+          user_id: req.user.id,
+          is_active: true
+        },
+      });
+  
+      return res.status(200).json({ status: 200, message: "Successfully registered" });
+  
+    } catch (error) {
+      console.error("Error in AllocateRoom:", error);
+      return res.status(500).json({ status: 500, message: "Internal server error" });
+    }
+  };
+  
+  
+  const ReservedRoom = async (req, res) => {
+    try {
+      
+      const now = new Date();
+  
+     
+      const findBooking = await client.booking.findMany({
+        where: {
+          is_active: true,
+          start_time: {
+            gte: now 
+          }
+          
+        },
+        orderBy: {
+            start_time: 'asc' 
+          },
+          include:{
+            room:true
+          }
+      });
+   
+      return res.status(200).json({ status: 200, message: "Successfully found", data: findBooking });
+  
+    } catch (error) {
+      console.error("Error in ReservedRoom:", error);
+      return res.status(500).json({ status: 500, message: "Internal server error" });
+    }
+  };
+  
+
+
+const DeallocateRoom = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    const findBooking = await client.booking.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!findBooking) {
+      return res.status(404).json({ status: 404, message: "Booking not found" });
+    }
+
+    await client.booking.update({
+      where: { id: Number(id) },
+      data: {
+        is_active: false
+      }
+    });
+
+    return res.status(200).json({ status: 200, message: "Deallocated successfully" });
+
+  } catch (error) {
+    return res.status(500).json({ status: 500, message: "Internal server error" });
+  }
+};
+
+
+  
+  
+const Archive = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const findBooking = await client.booking.findMany({
+      where: {
+        OR: [
+          {
+            is_active: false // Include inactive bookings
+          },
+          {
+            start_time: {
+              lt: now // Include past bookings if inactive
+            }
+          }
+        ]
+      },
+      orderBy: {
+        start_time: 'asc' // Sort bookings by start_time in ascending order
+      }
+    });
+
+    return res.status(200).json({ status: 200, message: "Successfully found", data: findBooking });
+
+  } catch (error) {
+    
+    return res.status(500).json({ status: 500, message: "Internal server error" });
+  }
+};
+
+
+
+module.exports = {
+    AllocateRoom,ReservedRoom,DeallocateRoom,Archive
+};

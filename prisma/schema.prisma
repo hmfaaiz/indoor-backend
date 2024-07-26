@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  name String?
+  role_id   Int?
+  role     Role?     @relation(fields: [role_id], references: [id])
+  is_active   Boolean  @default(true) 
+  booking      Booking[]    @relation()
+}
+
+
+model Role {
+  id             Int              @id @default(autoincrement())
+  role_name       String           @unique
+  users          User[]
+  role_permission RolePermission[]
+}
+
+model Module {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  permissions Permission[]
+}
+
+model Action {
+  id          Int          @id @default(autoincrement())
+  action_name  String       @unique
+  permissions Permission[]
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  module_id  Int
+  action_id  Int
+  module    Module   @relation(fields: [module_id], references: [id])
+  action    Action   @relation(fields: [action_id], references: [id])
+  role_perms RolePermission[]
+}
+
+model RolePermission {
+  id            Int        @id @default(autoincrement())
+  role_id        Int
+  permission_id  Int
+  role          Role       @relation(fields: [role_id], references: [id])
+  permission    Permission @relation(fields: [permission_id], references: [id])
+}
+
+
+// schema.prisma
+
+model Room {
+  id        Int       @id @default(autoincrement())
+  room_number String    
+  type String?   
+  capacity  Int    
+  detail String? 
+  is_active   Boolean  @default(true) 
+  bookings  Booking[]
+}
+
+model Booking {
+  id        Int       @id @default(autoincrement())
+  room_id    Int
+  room      Room      @relation(fields: [room_id], references: [id])
+  start_time DateTime
+  end_time   DateTime
+  contact_name String
+  contact_number String?
+  contact_email String?
+  user_id        Int?
+  assign_by          User?       @relation(fields: [user_id], references: [id])
+ is_active   Boolean  @default(true) 
+ 
+
+}
