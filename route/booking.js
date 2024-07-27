@@ -1,6 +1,6 @@
 const express = require("express");
 const route = express.Router();
-const {AllocateRoom, ReservedRoom,DeallocateRoom,Archive} = require("../controller/booking");
+const {AllocateRoom, ReservedRoom,DeallocateRoom,Archive,UpdateBooking} = require("../controller/booking");
 const { checkPermission } = require("../middleware/checkPermission");
 const {Authentication} = require("../middleware/authentication");
 
@@ -20,6 +20,9 @@ route.delete("/",checkPermission(moduleName), (req, res) => {
 });
 route.get("/Archive",checkPermission(moduleName) ,(req, res) => {
     Archive(req, res);
+});
+route.put("/UpdateBooking",checkPermission(moduleName) ,(req, res) => {
+    UpdateBooking(req, res);
 });
 
 module.exports = route;

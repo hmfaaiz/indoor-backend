@@ -54,12 +54,12 @@ const Authentication = (req, res, next) => {
 
             const userData = {
               id: user.forToken.id,
-              roleId: user.forToken.roleId
+              role_id: user.forToken.role_id
 
             };
 
             req.user = userData;
-         
+ 
 
             next()
           }

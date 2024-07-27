@@ -182,7 +182,93 @@ const Archive = async (req, res) => {
 };
 
 
+const UpdateBooking = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { room_id, start_time, end_time, contact_email, contact_name, contact_number } = req.body;
+
+    if (!room_id || !start_time || !end_time || !contact_number || !contact_name) {
+      return res.status(400).json({ status: 400, message: "Incomplete or malformed request data" });
+    }
+
+    const startTime = new Date(start_time);
+    const endTime = new Date(end_time);
+    const now = new Date();
+
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      return res.status(400).json({ status: 400, message: "Invalid date format" });
+    }
+
+    if (startTime < now) {
+      return res.status(400).json({ status: 400, message: "Start time cannot be in the past" });
+    }
+
+    if (endTime < now) {
+      return res.status(400).json({ status: 400, message: "End time cannot be in the past" });
+    }
+
+    if (startTime >= endTime) {
+      return res.status(400).json({ status: 400, message: "End time must be after start time" });
+    }
+
+    // Find the booking to be updated
+    const findBooking = await client.booking.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!findBooking) {
+      return res.status(404).json({ status: 404, message: "Booking not found" });
+    }
+
+    // Check if the new booking time conflicts with existing bookings
+    const existingBooking = await client.booking.findMany({
+      where: {
+        room_id: room_id,
+        is_active: true,
+        AND: [
+          {
+            OR: [
+              {
+                AND: [
+                  { start_time: { lte: endTime } },
+                  { end_time: { gte: startTime } }
+                ]
+              }
+            ]
+          }
+        ],
+        NOT: {
+          id: Number(id) // Exclude the current booking
+        }
+      }
+    });
+
+    if (existingBooking.length > 0) {
+      return res.status(409).json({ status: 409, message: "Room is already booked for the requested time", data: existingBooking });
+    }
+
+    // Update the booking
+    await client.booking.update({
+      where: { id: Number(id) },
+      data: {
+        room_id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        contact_email,
+        contact_name,
+        contact_number
+      }
+    });
+
+    return res.status(200).json({ status: 200, message: "Booking updated successfully" });
+
+  } catch (error) {
+    console.error("Error in UpdateBooking:", error);
+    return res.status(500).json({ status: 500, message: "Internal server error" });
+  }
+};
+
 
 module.exports = {
-    AllocateRoom,ReservedRoom,DeallocateRoom,Archive
+    AllocateRoom,ReservedRoom,DeallocateRoom,Archive,UpdateBooking
 };

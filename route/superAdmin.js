@@ -3,6 +3,7 @@ const route = express.Router();
 const { GetRolePermission,AddRolePermission} = require("../controller/superAdmin");
 
 route.get("/GetRolePermission", (req, res) => {
+  console.log("api")
   GetRolePermission(req, res);
 });
 

@@ -49,6 +49,7 @@ const AddRolePermission = async (req, res) => {
   };
   
   const GetRolePermission = async (req, res) => {
+    console.log("hit")
     try {
       let findRolePermission = await client.rolePermission.findMany({
         include: {
@@ -66,7 +67,7 @@ const AddRolePermission = async (req, res) => {
       const rolePermissions = {};
   
       findRolePermission.forEach(rp => {
-        const roleName = rp.role.roleName;
+        const roleName = rp.role.role_name;
         const moduleName = rp.permission.module.name;
         const actionName = rp.permission.action.action_name;
   
