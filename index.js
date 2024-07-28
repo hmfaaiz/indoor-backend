@@ -3,8 +3,11 @@ const { PrismaClient } = require('@prisma/client');
 const express = require('express');
 const apiRoutes = require('./route/index');
 const client = new PrismaClient();
+const cors = require('cors'); 
+
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.get('/', (req, res) => {
         res.status(200).send("Room Management System Api is running successfully");

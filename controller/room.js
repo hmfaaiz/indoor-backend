@@ -55,6 +55,7 @@ const GetRoom = async (req, res) => {
         is_active: true 
       },
     });
+    
  
     return res.status(200).json({ status: 200, message: "Successfully found", data: findRoom });
 

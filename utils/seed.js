@@ -41,6 +41,35 @@ const main = async () => {
     });
   }
 
+  const findPermission = await prisma.permission.findMany();
+  const findRole = await prisma.role.findFirst({
+    where:{role_name:"SuperAdmin"}
+  });
+
+
+  for (const permission of findPermission) {
+
+      const existingPermission = await prisma.rolePermission.findFirst({
+        where: {
+          permission_id: permission.id,
+          role_id: findRole.id,
+        },
+      });
+
+      if (!existingPermission) {
+        await prisma.rolePermission.create({
+          data: {
+            permission_id: permission.id,
+          role_id: findRole.id,
+          },
+        });
+      }
+    
+  }
+
+
+
+
   const findModules = await prisma.module.findMany();
   const findActions = await prisma.action.findMany();
 
@@ -63,6 +92,11 @@ const main = async () => {
       }
     }
   }
+
+
+
+
+
 
   const superAdminEmail = "superadmin@room.com";
   const superAdminPassword = "12345";

@@ -267,8 +267,68 @@ const UpdateBooking = async (req, res) => {
     return res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
+const Report = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+    const endOfDay = new Date(startOfDay).setHours(23, 59, 59, 999); // End of today
 
+    const endOfDayDate = new Date(endOfDay);
+
+
+
+    const [findBooking, findArchive, findRoom,todayBooking] = await Promise.all([
+      client.booking.findMany({
+        where: {
+          is_active: true,
+          start_time: { gte: now }
+        },
+        orderBy: { start_time: 'asc' },
+        include: { room: true }
+      }),
+
+      client.booking.findMany({
+        where: {
+          OR: [
+            { is_active: false },
+            { start_time: { lt: now } }
+          ]
+        },
+        orderBy: { start_time: 'asc' }
+      }),
+
+      client.room.findMany({
+        where: { is_active: true }
+      }),
+
+
+      client.booking.findMany({
+        where: {
+          start_time: { gte: now, lte: endOfDayDate }, // Bookings starting today
+          is_active: true
+        },
+        orderBy: { start_time: 'asc' },
+        include: { room: true }
+      })
+    ]);
+
+
+    const data = {
+      total_rooms: findRoom.length,
+      total_bookings: findBooking.length,
+      total_archive: findArchive.length,
+      total_todayBooking: todayBooking.length
+    };
+
+ 
+    return res.status(200).json({ status: 200, message: "Report",data });
+
+  } catch (error) {
+    console.error("Error in Report:", error);
+    return res.status(500).json({ status: 500, message: "Internal server error" });
+  }
+};
 
 module.exports = {
-    AllocateRoom,ReservedRoom,DeallocateRoom,Archive,UpdateBooking
+    AllocateRoom,ReservedRoom,DeallocateRoom,Archive,UpdateBooking,Report
 };
