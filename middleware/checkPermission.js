@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const checkPermission = (module) => async (req, res, next) => {
     let action = req.method
     try {
-        console.log("check permission", req.user.role_id)
+        console.log("check permission", req.user.role_id,action)
         const rolePermissions = await prisma.rolePermission.findMany({
             where: { role_id: req.user.role_id }, // Replace with the roleId you want to query
             include: {

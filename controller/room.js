@@ -82,7 +82,7 @@ const UpdateRoom = async (req, res) => {
       where: { id: Number(id) },
       data: {
          room_number,
-        type,capacity,detail
+        type,capacity:parseInt(capacity,10),detail
      
       },
     });
