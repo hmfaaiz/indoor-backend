@@ -23,7 +23,7 @@ const GenerateToken = (user, res) => {
 
 const Authentication = (req, res, next) => {
   const token = req.headers.token || req.headers.authorization;
- console.log("token",token)
+
   if (token) {
     jwt.verify(
       token.replace("Bearer ", ""),

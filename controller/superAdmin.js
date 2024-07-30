@@ -49,7 +49,7 @@ const AddRolePermission = async (req, res) => {
   };
   
   const GetRolePermission = async (req, res) => {
-    console.log("hit")
+    
     try {
       let findRolePermission = await client.rolePermission.findMany({
         include: {
