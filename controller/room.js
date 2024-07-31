@@ -28,7 +28,7 @@ const Register = async (req, res) => {
       data: {
         room_number: req.body.room_number,
         type: req.body.type,
-        capacity: req.body.capacity,
+        capacity:parseInt(req.body.capacity,10),
         detail: req.body.detail,
  
       },
@@ -78,6 +78,17 @@ const UpdateRoom = async (req, res) => {
       return res.status(404).json({ status: 404, message: "Room not found" });
     }
 
+
+    if (room_number !== findRoom.room_number) {
+   
+      const existingRoom = await client.room.findFirst({
+        where: { room_number: room_number }
+      });
+
+      if (existingRoom) {
+        return res.status(400).json({ status: 400, message: "Room number already in use" });
+      }
+    }
     await client.room.update({
       where: { id: Number(id) },
       data: {
