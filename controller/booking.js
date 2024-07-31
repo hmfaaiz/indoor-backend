@@ -170,6 +170,9 @@ const Archive = async (req, res) => {
       },
       orderBy: {
         start_time: 'asc' // Sort bookings by start_time in ascending order
+      },
+      include:{
+        room:true
       }
     });
 
