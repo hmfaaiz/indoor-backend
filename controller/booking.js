@@ -188,8 +188,9 @@ const Archive = async (req, res) => {
 const UpdateBooking = async (req, res) => {
   try {
     const { id } = req.query;
-    const { room_id, start_time, end_time, contact_email, contact_name, contact_number } = req.body;
 
+    const { room_id, start_time, end_time, contact_email, contact_name, contact_number } = req.body;
+   
     if (!room_id || !start_time || !end_time || !contact_number || !contact_name) {
       return res.status(400).json({ status: 400, message: "Incomplete or malformed request data" });
     }
@@ -226,7 +227,7 @@ const UpdateBooking = async (req, res) => {
     // Check if the new booking time conflicts with existing bookings
     const existingBooking = await client.booking.findMany({
       where: {
-        room_id: room_id,
+        room_id: room_id.id,
         is_active: true,
         AND: [
           {
@@ -254,7 +255,7 @@ const UpdateBooking = async (req, res) => {
     await client.booking.update({
       where: { id: Number(id) },
       data: {
-        room_id,
+        room_id:room_id.id,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
         contact_email,

@@ -108,7 +108,7 @@ const UpdateRoom = async (req, res) => {
 
 const SoftDeleteRoom = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.query;
 
     const findRoom = await client.room.findUnique({
       where: { id: Number(id) }
@@ -121,11 +121,11 @@ const SoftDeleteRoom = async (req, res) => {
     await client.room.update({
       where: { id: Number(id) },
       data: {
-        isActive: false
+        is_active: false
       }
     });
 
-    return res.status(200).json({ status: 200, message: "User soft deleted successfully" });
+    return res.status(200).json({ status: 200, message: "Room soft deleted successfully" });
 
   } catch (error) {
     return res.status(500).json({ status: 500, message: "Internal server error" });
