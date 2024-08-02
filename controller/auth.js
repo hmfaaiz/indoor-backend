@@ -77,6 +77,8 @@ const Signin = async (req, res) => {
 };
 
 const MyProfile = async (req, res) => {
+
+  console.log("my profile")
   Authentication(req, res, async (user) => {
 
   try {

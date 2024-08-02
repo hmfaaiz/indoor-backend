@@ -1,6 +1,6 @@
 const express = require("express");
 const route = express.Router();
-const {AllocateRoom, ReservedRoom,DeallocateRoom,Archive,UpdateBooking,Report} = require("../controller/booking");
+const {AllocateRoom, ReservedRoom,DeallocateRoom,Archive,UpdateBooking,Report,AllBooking} = require("../controller/booking");
 const { checkPermission } = require("../middleware/checkPermission");
 const {Authentication} = require("../middleware/authentication");
 
@@ -26,6 +26,9 @@ route.put("/UpdateBooking",checkPermission(moduleName) ,(req, res) => {
 });
 route.get("/Report",checkPermission(moduleName) ,(req, res) => {
     Report(req, res);
+});
+route.get("/AllBooking",checkPermission(moduleName) ,(req, res) => {
+    AllBooking(req, res);
 });
 
 module.exports = route;

@@ -333,6 +333,35 @@ const Report = async (req, res) => {
   }
 };
 
+const AllBooking = async (req, res) => {
+  try {
+    
+    const now = new Date();
+
+   
+    const findBooking = await client.booking.findMany({
+      where: {
+        is_active: true,
+        
+      },
+      orderBy: {
+          start_time: 'asc' 
+        },
+        include:{
+          room:true
+        }
+    });
+ 
+    return res.status(200).json({ status: 200, message: "Successfully found", data: findBooking });
+
+  } catch (error) {
+    console.error("Error in ReservedRoom:", error);
+    return res.status(500).json({ status: 500, message: "Internal server error" });
+  }
+};
+
+
+
 module.exports = {
-    AllocateRoom,ReservedRoom,DeallocateRoom,Archive,UpdateBooking,Report
+    AllocateRoom,ReservedRoom,DeallocateRoom,Archive,UpdateBooking,Report,AllBooking
 };
