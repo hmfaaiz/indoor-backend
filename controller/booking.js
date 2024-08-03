@@ -151,38 +151,96 @@ const DeallocateRoom = async (req, res) => {
 
   
   
+// const Archive = async (req, res) => {
+//   try {
+//     const now = new Date();
+
+//     const findBooking = await client.booking.findMany({
+//       where: {
+//         OR: [
+//           {
+//             is_active: false // Include inactive bookings
+//           },
+//           {
+//             start_time: {
+//               lt: now // Include past bookings if inactive
+//             }
+//           }
+//         ]
+//       },
+//       orderBy: {
+//         start_time: 'asc' // Sort bookings by start_time in ascending order
+//       },
+//       include:{
+//         room:true
+//       }
+//     });
+
+//     return res.status(200).json({ status: 200, message: "Successfully found", data: findBooking });
+
+//   } catch (error) {
+    
+//     return res.status(500).json({ status: 500, message: "Internal server error" });
+//   }
+// };
+
+
 const Archive = async (req, res) => {
   try {
     const now = new Date();
+    
+    // Extract date parameters from query
+    const { startDate, endDate } = req.body;
+    
+    // Initialize date range filter
+    const dateFilter = {};
 
+    if (startDate && endDate) {
+      // Convert query parameters to Date objects
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Set date range filter
+      dateFilter.start_time = {
+        gte: start,
+        lte: end
+      };
+    }
+
+    // Find bookings with or without date filter
     const findBooking = await client.booking.findMany({
       where: {
-        OR: [
+        AND: [
+          dateFilter, // Apply date range filter if present
           {
-            is_active: false // Include inactive bookings
-          },
-          {
-            start_time: {
-              lt: now // Include past bookings if inactive
-            }
+            OR: [
+              {
+                is_active: false // Include inactive bookings
+              },
+              {
+                start_time: {
+                  lt: now // Include past bookings if inactive
+                }
+              }
+            ]
           }
         ]
       },
       orderBy: {
         start_time: 'asc' // Sort bookings by start_time in ascending order
       },
-      include:{
-        room:true
+      include: {
+        room: true
       }
     });
 
-    return res.status(200).json({ status: 200, message: "Successfully found", data: findBooking });
+    return res.status(200).json({ status: 200, message: "Successfully found", total: findBooking.length,data: findBooking});
 
   } catch (error) {
-    
     return res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
+
 
 
 const UpdateBooking = async (req, res) => {
