@@ -71,6 +71,7 @@ const Signin = async (req, res) => {
         }
       }
     );
+    
   } catch {
     return res.status(500).json({ status: 500, message: "Internal error" });
   }
